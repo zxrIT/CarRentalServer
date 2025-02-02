@@ -1,5 +1,6 @@
 package com.ZengXiangRui.CarRentalServer.service.impl;
 
+import com.ZengXiangRui.CarRentalServer.RequestParam.UserRequestParam;
 import com.ZengXiangRui.CarRentalServer.Response.BaseResponse;
 import com.ZengXiangRui.CarRentalServer.Response.BaseResponseUtil;
 import com.ZengXiangRui.CarRentalServer.annotation.LoggerAnnotation;
@@ -30,20 +31,20 @@ public class LoginServiceImpl extends ServiceImpl<UserMapper, User> implements L
     @Override
     @Transactional
     @LoggerAnnotation(operation = "用户登录", dataSource = "user")
-    public String login(String username, String avatarUrl) throws LoginException {
+    public String login(UserRequestParam userInfo) throws LoginException {
         try {
             User user = userMapper.selectOne(new LambdaQueryWrapper<User>().
-                    eq(User::getId, Encryption.encryptToMd5(username)).
-                    eq(User::getUsername, username));
+                    eq(User::getId, Encryption.encryptToMd5(userInfo.username)).
+                    eq(User::getUsername, userInfo.username));
             if (user != null) {
                 return JsonSerialization.toJson(new BaseResponse<User>(
                         BaseResponseUtil.SUCCESS_CODE, BaseResponseUtil.SUCCESS_MESSAGE, user
                 ));
             }
             User newUser = new User();
-            newUser.setUsername(username);
-            newUser.setId(Encryption.encryptToMd5(username));
-            newUser.setUserIcon(avatarUrl);
+            newUser.setUsername(userInfo.username);
+            newUser.setId(Encryption.encryptToMd5(userInfo.username));
+            newUser.setUserIcon(userInfo.avatarUrl);
             userMapper.insert(newUser);
             return JsonSerialization.toJson(new BaseResponse<User>(
                     BaseResponseUtil.SUCCESS_CODE, BaseResponseUtil.SUCCESS_MESSAGE, newUser

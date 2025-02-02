@@ -21,7 +21,7 @@ public class GlobalExceptionHandler {
         if (exception instanceof LoginException) {
             return JsonSerialization.toJson(new BaseResponse<>(
                     BaseResponseUtil.SERVER_ERROR_CODE, BaseResponseUtil.SERVER_ERROR_MESSAGE,
-                    exception.getMessage()
+                    "登录失败，请稍后重试"
             ));
         }
         logger.error("==============log start =============");

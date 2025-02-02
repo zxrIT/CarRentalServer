@@ -1,6 +1,16 @@
 server:
   port: 8080
 spring:
+  redis:
+    host: 192.168.202.134
+    port: 6379
+    password: root1234
+    lettuce:
+      pool:
+        max-active: 8
+        max-idle: 8
+        min-idle: 0
+        max-wait: 100
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: jdbc:mysql://localhost:3306/huazi_car?serverTimezone=Asia/Shanghai&useUnicode=true&characterEncoding=utf-8&useSSL=false
@@ -18,3 +28,6 @@ mybatis-plus:
       logic-not-delete-value: 0
   mapper-locations: classpath*:/mapper/**/*.xml
   type-aliases-package: com.ZengXiangRui.CarRentalServer.entity
+logging:
+  level:
+    com.ZengXiangRui: info
