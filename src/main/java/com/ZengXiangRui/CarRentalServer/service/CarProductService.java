@@ -5,4 +5,5 @@ import com.baomidou.mybatisplus.extension.service.IService;
 
 public interface CarProductService extends IService<CarProduct> {
     String findAllCarProduct();
+    String findCarProductByCarId(String carId);
 }

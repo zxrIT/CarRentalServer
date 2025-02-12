@@ -13,7 +13,7 @@ import com.ZengXiangRui.CarRentalServer.service.CarProductService;
 import com.ZengXiangRui.CarRentalServer.utils.IsEmpty;
 import com.ZengXiangRui.CarRentalServer.utils.JsonSerialization;
 import com.ZengXiangRui.CarRentalServer.utils.JsonUtil;
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -59,7 +59,8 @@ public class CarProductServiceImpl extends ServiceImpl<CarProductMapper, CarProd
                         BaseResponseUtil.SUCCESS_CODE, BaseResponseUtil.SUCCESS_MESSAGE, carProducts
                 ));
             }
-            carProducts = carProductMapper.selectList(new QueryWrapper<CarProduct>());
+            carProducts = carProductMapper.selectList(new LambdaQueryWrapper<CarProduct>()
+                    .eq(CarProduct::getStatus, true));
             redisParam.setKey(redisIdWorker.nextId(redisKey));
             redisParam.setValue(carProducts);
             stringRedisTemplate.opsForValue().set(
@@ -72,6 +73,36 @@ public class CarProductServiceImpl extends ServiceImpl<CarProductMapper, CarProd
             ));
         } catch (Exception exception) {
             log.error("搜索全部汽车商品时发生错误");
+            throw new SelectCarProductException(exception.getMessage());
+        }
+    }
+
+    @Override
+    @Transactional
+    @LoggerAnnotation(operation = "根据id获取单个车辆信息", dataSource = "redis缓存或mysql中的car表")
+    public String findCarProductByCarId(String carId) throws SelectCarProductException {
+        try {
+            CarProduct carProduct;
+            String redisCaching = stringRedisTemplate.opsForValue().get(redisKey + ":" + carId);
+            if (!IsEmpty.isJsonEmpty(redisCaching)) {
+                log.info("redis Caching hit");
+                carProduct = JsonUtil.jsonToObject(redisCaching, CarProduct.class);
+                return JsonSerialization.toJson(new BaseResponse<CarProduct>(
+                        BaseResponseUtil.SUCCESS_CODE, BaseResponseUtil.SUCCESS_MESSAGE, carProduct
+                ));
+            }
+            carProduct = carProductMapper.selectOne(new LambdaQueryWrapper<CarProduct>().eq(
+                    CarProduct::getId, carId
+            ));
+            stringRedisTemplate.opsForValue().set(
+                    redisKey + ":" + carProduct.getId(), JsonUtil.objectToJson(carProduct),
+                    RedisContent.CACHE_TTL, TimeUnit.MINUTES
+            );
+            log.info("redis缓存未命中，从数据库中查询后以加入redis缓存中");
+            return JsonSerialization.toJson(new BaseResponse<CarProduct>(
+                    BaseResponseUtil.SUCCESS_CODE, BaseResponseUtil.SUCCESS_MESSAGE, carProduct
+            ));
+        } catch (Exception exception) {
             throw new SelectCarProductException(exception.getMessage());
         }
     }

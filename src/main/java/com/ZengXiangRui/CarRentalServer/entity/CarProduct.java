@@ -14,6 +14,9 @@ public class CarProduct {
     private String energy;
     private Integer volume;
     private String actuation;
+    private Boolean status;
+    private Integer seats;
+    private String brand;
 
     @TableField("firstTag")
     private String firstTag;
