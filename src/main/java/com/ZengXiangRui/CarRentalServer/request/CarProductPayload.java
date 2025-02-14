@@ -1,13 +1,10 @@
-package com.ZengXiangRui.CarRentalServer.entity;
+package com.ZengXiangRui.CarRentalServer.request;
 
-import com.baomidou.mybatisplus.annotation.TableField;
-import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
+import org.springframework.web.multipart.MultipartFile;
 
 @Data
-@TableName("car")
-public class CarProduct {
-    private String id;
+public class CarProductPayload {
     private String name;
     private String displacement;
     private String specifications;
@@ -17,28 +14,12 @@ public class CarProduct {
     private Boolean status;
     private Integer seats;
     private String brand;
-
-    @TableField("firstTag")
     private String firstTag;
-
-    @TableField("secondTag")
     private String secondTag;
-
-    @TableField("thirdTag")
     private String thirdTag;
-
-    @TableField("fourthTag")
     private String fourthTag;
-
-    @TableField("originalPrice")
     private Integer originalPrice;
-
-    @TableField("currentPrice")
     private Integer currentPrice;
-
-    @TableField("carImage")
-    private String carImage;
-
-    @TableField("fuelOilNumber")
+    private MultipartFile carImage;
     private Integer fuelOilNumber;
 }
