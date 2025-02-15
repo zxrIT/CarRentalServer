@@ -2,9 +2,11 @@ package com.ZengXiangRui.CarRentalServer.controller;
 
 import com.ZengXiangRui.CarRentalServer.entity.CarDetail;
 import com.ZengXiangRui.CarRentalServer.entity.CarProduct;
+import com.ZengXiangRui.CarRentalServer.entity.Order;
 import com.ZengXiangRui.CarRentalServer.request.CarProductPayload;
 import com.ZengXiangRui.CarRentalServer.service.CarDetailService;
 import com.ZengXiangRui.CarRentalServer.service.CarProductService;
+import com.ZengXiangRui.CarRentalServer.service.OrderService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -16,12 +18,31 @@ import org.springframework.web.multipart.MultipartFile;
 public class CarRentalServerController {
     private final CarProductService carProductService;
     private final CarDetailService carDetailService;
+    private final OrderService orderService;
 
     @Autowired
     public CarRentalServerController(CarProductService carProductService,
-                                     CarDetailService carDetailService) {
+                                     CarDetailService carDetailService,
+                                     OrderService orderService) {
         this.carProductService = carProductService;
         this.carDetailService = carDetailService;
+        this.orderService = orderService;
+    }
+
+    @PostMapping("/create/order")
+    private String createOrder(@RequestBody Order order) {
+        System.out.println(order.toString());
+        return "";
+    }
+
+    @GetMapping("/find/all/order")
+    private String findAllOrder() {
+        return orderService.findAllOrder();
+    }
+
+    @GetMapping("/find/user/order/{id}")
+    private String findUserOrder(@PathVariable String id) {
+        return orderService.findUserOrder(id);
     }
 
     @PostMapping("/increment/car/detail")
