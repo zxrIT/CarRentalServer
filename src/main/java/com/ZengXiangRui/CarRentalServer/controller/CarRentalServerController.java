@@ -1,6 +1,6 @@
 package com.ZengXiangRui.CarRentalServer.controller;
 
-import com.ZengXiangRui.CarRentalServer.RequestParam.CarProductParam;
+import com.ZengXiangRui.CarRentalServer.entity.CarDetail;
 import com.ZengXiangRui.CarRentalServer.entity.CarProduct;
 import com.ZengXiangRui.CarRentalServer.request.CarProductPayload;
 import com.ZengXiangRui.CarRentalServer.service.CarDetailService;
@@ -11,7 +11,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("/business")
-//@SuppressWarnings("all")
+@SuppressWarnings("all")
 @CrossOrigin
 public class CarRentalServerController {
     private final CarProductService carProductService;
@@ -22,6 +22,36 @@ public class CarRentalServerController {
                                      CarDetailService carDetailService) {
         this.carProductService = carProductService;
         this.carDetailService = carDetailService;
+    }
+
+    @PostMapping("/increment/car/detail")
+    private String incrementCarDetail(@RequestBody CarDetail carDetail) {
+        return carDetailService.incrementCarDetail(carDetail);
+    }
+
+    @PostMapping("/update/car/detail")
+    private String updateCarDetail(@RequestBody CarDetail carDetail) {
+        return carDetailService.updateCarDetail(carDetail);
+    }
+
+    @GetMapping("/find/all/details")
+    private String findAllDetails() {
+        return carDetailService.findCarDetails();
+    }
+
+    @GetMapping("/find/vehicleInspection")
+    private String findVehicleInspection() {
+        return carProductService.findVehicleInspectionCarProduct();
+    }
+
+    @PostMapping("/through/vehicleInspection/{carId}")
+    private String throughVehicleInspection(@PathVariable String carId) {
+        return carProductService.throughVehicleInspectionCarProduct(carId);
+    }
+
+    @DeleteMapping("/dismiss/vehicleInspection/{carId}")
+    private String dismissVehicleInspection(@PathVariable String carId) {
+        return carProductService.dismissVehicleInspectionCarProduct(carId);
     }
 
     @GetMapping("/car")

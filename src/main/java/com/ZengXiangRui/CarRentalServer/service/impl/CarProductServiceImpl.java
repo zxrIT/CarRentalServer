@@ -1,6 +1,5 @@
 package com.ZengXiangRui.CarRentalServer.service.impl;
 
-import com.ZengXiangRui.CarRentalServer.RequestParam.CarProductParam;
 import com.ZengXiangRui.CarRentalServer.Response.BaseResponse;
 import com.ZengXiangRui.CarRentalServer.Response.BaseResponseUtil;
 import com.ZengXiangRui.CarRentalServer.annotation.LoggerAnnotation;
@@ -11,6 +10,7 @@ import com.ZengXiangRui.CarRentalServer.exception.DeleteCarProductException;
 import com.ZengXiangRui.CarRentalServer.exception.IncrementCarProductException;
 import com.ZengXiangRui.CarRentalServer.exception.SelectCarProductException;
 import com.ZengXiangRui.CarRentalServer.exception.UpdateCarProductException;
+import com.ZengXiangRui.CarRentalServer.mapper.CarDetailMapper;
 import com.ZengXiangRui.CarRentalServer.mapper.CarProductMapper;
 import com.ZengXiangRui.CarRentalServer.mapper.PendingReviewCarProductMapper;
 import com.ZengXiangRui.CarRentalServer.redis.RedisIdWorker;
@@ -46,16 +46,73 @@ public class CarProductServiceImpl extends ServiceImpl<CarProductMapper, CarProd
     private final CarProductMapper carProductMapper;
     private final RedisIdWorker redisIdWorker;
     private final PendingReviewCarProductMapper pendingReviewCarProductMapper;
+    private final CarDetailMapper carDetailMapper;
 
     @Autowired
     public CarProductServiceImpl(CarProductMapper carProductMapper,
                                  StringRedisTemplate stringRedisTemplate,
                                  RedisIdWorker redisIdWorker,
-                                 PendingReviewCarProductMapper pendingReviewCarProductMapper) {
+                                 PendingReviewCarProductMapper pendingReviewCarProductMapper,
+                                 CarDetailMapper carDetailMapper
+    ) {
         this.carProductMapper = carProductMapper;
         this.stringRedisTemplate = stringRedisTemplate;
         this.redisIdWorker = redisIdWorker;
         this.pendingReviewCarProductMapper = pendingReviewCarProductMapper;
+        this.carDetailMapper = carDetailMapper;
+    }
+
+    @Override
+    @Transactional
+    @LoggerAnnotation(operation = "通过待审核商品", dataSource = "mysql中的pendingReviewCarProduct表")
+    public String throughVehicleInspectionCarProduct(String carId) throws IncrementCarProductException {
+        try {
+            PendingReviewCarProduct pendingReviewCarProduct = pendingReviewCarProductMapper.selectOne(
+                    new LambdaQueryWrapper<PendingReviewCarProduct>().eq(
+                            PendingReviewCarProduct::getId, carId
+                    ));
+            carProductMapper.insert(pendingReviewCarProduct);
+            pendingReviewCarProductMapper.deleteById(pendingReviewCarProduct.getId());
+            stringRedisTemplate.delete(redisKeySuccess);
+            stringRedisTemplate.delete(redisKeyAll);
+            return JsonSerialization.toJson(new BaseResponse<String>(
+                    BaseResponseUtil.SUCCESS_CODE, BaseResponseUtil.SUCCESS_MESSAGE, "通过成功"
+            ));
+        } catch (Exception exception) {
+            throw new IncrementCarProductException(exception.getMessage());
+        }
+    }
+
+    @Override
+    @Transactional
+    @LoggerAnnotation(operation = "驳回待审核商品", dataSource = "mysql中的pendingReviewCarProduct表")
+    public String dismissVehicleInspectionCarProduct(String carId) throws DeleteCarProductException {
+        try {
+            PendingReviewCarProduct pendingReviewCarProduct = pendingReviewCarProductMapper.selectOne(
+                    new LambdaQueryWrapper<PendingReviewCarProduct>().eq(
+                            PendingReviewCarProduct::getId, carId
+                    ));
+            pendingReviewCarProductMapper.deleteById(pendingReviewCarProduct.getId());
+            return JsonSerialization.toJson(new BaseResponse<String>(
+                    BaseResponseUtil.SUCCESS_CODE, BaseResponseUtil.SUCCESS_MESSAGE, "驳回成功"
+            ));
+        } catch (Exception exception) {
+            throw new DeleteCarProductException(exception.getMessage());
+        }
+    }
+
+    @Override
+    @LoggerAnnotation(operation = "查询全部待审核商品", dataSource = "mysql中的pendingReviewCarProduct表")
+    public String findVehicleInspectionCarProduct() throws SelectCarProductException {
+        try {
+            List<PendingReviewCarProduct> pendingReviewCarProducts =
+                    pendingReviewCarProductMapper.selectList(new LambdaQueryWrapper<PendingReviewCarProduct>());
+            return JsonSerialization.toJson(new BaseResponse<List<PendingReviewCarProduct>>(
+                    BaseResponseUtil.SUCCESS_CODE, BaseResponseUtil.SUCCESS_MESSAGE, pendingReviewCarProducts
+            ));
+        } catch (Exception exception) {
+            throw new SelectCarProductException(exception.getMessage());
+        }
     }
 
     @Override
@@ -172,9 +229,11 @@ public class CarProductServiceImpl extends ServiceImpl<CarProductMapper, CarProd
     }
 
     @Override
+    @LoggerAnnotation(operation = "删除车辆信息", dataSource = "mysql中的car表和carDetail表")
     public String deleteCarProduct(String carId) throws DeleteCarProductException {
         try {
             carProductMapper.deleteById(carId);
+            carDetailMapper.deleteById(carId);
             stringRedisTemplate.delete(redisKeySuccess);
             stringRedisTemplate.delete(redisKeyAll);
             return JsonSerialization.toJson(new BaseResponse<String>(

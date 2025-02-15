@@ -15,4 +15,6 @@ public class User {
     @TableField("userIcon")
     private String userIcon;
     private Integer points;
+    private String password;
+    private String account;
 }

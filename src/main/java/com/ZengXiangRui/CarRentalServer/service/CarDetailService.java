@@ -6,4 +6,10 @@ import com.baomidou.mybatisplus.extension.service.IService;
 
 public interface CarDetailService extends IService<CarDetail> {
     String findCarDetailByCarId(String carId);
+
+    String updateCarDetail(CarDetail carDetail);
+
+    String incrementCarDetail(CarDetail carDetail);
+
+    String findCarDetails();
 }
