@@ -11,6 +11,7 @@ import com.ZengXiangRui.CarRentalServer.mapper.UserMapper;
 import com.ZengXiangRui.CarRentalServer.service.OrderService;
 import com.ZengXiangRui.CarRentalServer.utils.JsonSerialization;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -37,6 +38,25 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order>
             List<Order> orders = orderMapper.selectList(new LambdaQueryWrapper<Order>());
             return JsonSerialization.toJson(new BaseResponse<List<Order>>(
                     BaseResponseUtil.SUCCESS_CODE, BaseResponseUtil.SUCCESS_MESSAGE, orders
+            ));
+        } catch (Exception exception) {
+            throw new SelectOrderException(exception.getMessage());
+        }
+    }
+
+    @Override
+    @LoggerAnnotation(operation = "添加用户订单", dataSource = "mysql中的order表")
+    public String insertOrder(Order order) {
+        try {
+            Order orderObject = orderMapper.selectOne(new QueryWrapper<Order>().eq("orderNo", order.getOrderNo()));
+            if (orderObject == null) {
+                orderMapper.insert(order);
+                return JsonSerialization.toJson(new BaseResponse<String>(
+                        BaseResponseUtil.SUCCESS_CODE, BaseResponseUtil.SUCCESS_MESSAGE, "预定成功"
+                ));
+            }
+            return JsonSerialization.toJson(new BaseResponse<String>(
+                    BaseResponseUtil.SUCCESS_CODE, BaseResponseUtil.SUCCESS_MESSAGE, "添加失败订单已存在"
             ));
         } catch (Exception exception) {
             throw new SelectOrderException(exception.getMessage());

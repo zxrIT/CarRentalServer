@@ -29,12 +29,6 @@ public class CarRentalServerController {
         this.orderService = orderService;
     }
 
-    @PostMapping("/create/order")
-    private String createOrder(@RequestBody Order order) {
-        System.out.println(order.toString());
-        return "";
-    }
-
     @GetMapping("/find/all/order")
     private String findAllOrder() {
         return orderService.findAllOrder();
@@ -68,6 +62,11 @@ public class CarRentalServerController {
     @PostMapping("/through/vehicleInspection/{carId}")
     private String throughVehicleInspection(@PathVariable String carId) {
         return carProductService.throughVehicleInspectionCarProduct(carId);
+    }
+
+    @PostMapping("/order/increament")
+    private String increamentOrder(@RequestBody Order order) {
+        return orderService.insertOrder(order);
     }
 
     @DeleteMapping("/dismiss/vehicleInspection/{carId}")

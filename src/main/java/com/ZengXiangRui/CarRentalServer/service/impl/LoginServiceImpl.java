@@ -50,6 +50,7 @@ public class LoginServiceImpl extends ServiceImpl<UserMapper, User> implements L
     @Override
     public String loginAdmin(UserRequestAdminLoginParam userRequestAdminLoginParam) throws LoginException {
         try {
+            System.out.println(Encryption.encryptToMd5(userRequestAdminLoginParam.getPassword()));
             User user = userMapper.selectOne(new LambdaQueryWrapper<User>()
                     .eq(User::getAccount, userRequestAdminLoginParam.getUsername()));
             if (user == null) {
